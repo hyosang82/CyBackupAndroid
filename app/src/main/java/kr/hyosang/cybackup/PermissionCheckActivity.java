@@ -41,15 +41,7 @@ public class PermissionCheckActivity extends Activity {
 
         for (String perm : CHECK_PERMISSIONS) {
             if (ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, perm)) {
-                    //[거부]를 선택한 경우 재실행시 : 메세지 표시 후 재요청
-                    /*
-                    */
-                    return;
-                }else {
-                    //미승인 권한
-                    needCheck = true;
-                }
+                needCheck = true;
             }else {
                 //승인된 권한
             }

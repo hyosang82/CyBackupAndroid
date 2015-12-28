@@ -10,6 +10,20 @@
         android:layout_height="wrap_content"
     />
 
+    <CheckBox
+        android:id="@+id/chk_nomedia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="다운받은 파일을 갤러리 앱에 보이지 않음"
+    />
+
+    <CheckBox
+        android:id="@+id/chk_makezip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="압축파일 생성"
+    />
+
     <Button
         android:id="@+id/btn_start"
         android:layout_width="match_parent"
@@ -30,13 +44,6 @@
         android:scaleType="fitCenter"
     />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical"
-    >
-    </LinearLayout>
 
 
 </LinearLayout>

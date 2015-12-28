@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CyBackup.iml" filepath="$PROJECT_DIR$/CyBackup.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CyBackupAndroid.iml" filepath="$PROJECT_DIR$/CyBackupAndroid.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/common_android-release/common_android-release.iml" filepath="$PROJECT_DIR$/common_android-release/common_android-release.iml" />
     </modules>
   </component>
 </project>

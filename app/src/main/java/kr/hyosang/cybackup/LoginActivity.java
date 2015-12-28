@@ -1,6 +1,8 @@
 package kr.hyosang.cybackup;
 
         import android.app.Activity;
+        import android.app.AlertDialog;
+        import android.content.DialogInterface;
         import android.content.Intent;
         import android.os.Handler;
         import android.os.Message;
@@ -10,6 +12,7 @@ package kr.hyosang.cybackup;
         import android.webkit.JsResult;
         import android.webkit.WebChromeClient;
         import android.webkit.WebView;
+        import android.widget.Button;
         import android.widget.EditText;
         import android.widget.Toast;
 
@@ -25,6 +28,8 @@ package kr.hyosang.cybackup;
 
         import javax.net.ssl.HttpsURLConnection;
 
+        import kr.hyosang.common.HttpUtil;
+
 public class LoginActivity extends Activity {
     private static final String TAG = "LoginActivity";
 
@@ -34,11 +39,14 @@ public class LoginActivity extends Activity {
     private WebView mWeb;
     private String email;
     private String mCookie;
+    private Button mBtnLogin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        mBtnLogin = (Button) findViewById(R.id.btn_login);
 
         mWeb = (WebView) findViewById(R.id.webview);
         mWeb.getSettings().setJavaScriptEnabled(true);
@@ -47,9 +55,11 @@ public class LoginActivity extends Activity {
 
         mWeb.loadUrl("https://cyxso.cyworld.com/mnate/Login.sk?loginstr=redirect&redirection=");
 
-        findViewById(R.id.btn_login).setOnClickListener(new View.OnClickListener() {
+        mBtnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mBtnLogin.setEnabled(false);
+
                 EditText et_e = (EditText) findViewById(R.id.et_email);
                 EditText et_p = (EditText) findViewById(R.id.et_pass);
 
@@ -67,12 +77,26 @@ public class LoginActivity extends Activity {
                 mWeb.loadUrl(js);
             }
         });
+
+        (new AlertDialog.Builder(this))
+                .setMessage("이 어플을 사용함에 따른 모든 책임은 사용자 본인에게 있음을 알고 있으며, 이에 동의합니다.")
+                .setPositiveButton("동의", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .setNegativeButton("동의하지 않음", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finish();
+                    }
+                })
+                .create().show();
     }
 
     private void requestLogin(String rsaPasswd) {
-        HttpUtil.HttpData login = new HttpUtil.HttpData();
-        login.url = "https://cyxso.cyworld.com/LoginAuth.sk";
-        login.method = "POST";
+        HttpUtil.HttpData login = HttpUtil.HttpData.createPostRequest("https://cyxso.cyworld.com/LoginAuth.sk");
 
         login.requestHeaders.put("Referer", "http://cyxso.cyworld.com/Login.sk");
         login.requestHeaders.put("Content-Type", "application/x-www-form-urlencoded");
@@ -97,9 +121,7 @@ public class LoginActivity extends Activity {
     }
 
     private void requestMain() {
-        HttpUtil.HttpData home = new HttpUtil.HttpData();
-        home.url = "http://www.cyworld.com/cymain";
-        home.method = "GET";
+        HttpUtil.HttpData home = HttpUtil.HttpData.createGetRequest("http://www.cyworld.com/cymain");
         home.mListener = new HttpUtil.HttpListener() {
             @Override
             public void onCompleted(HttpUtil.HttpData data) {

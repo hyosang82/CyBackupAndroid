@@ -10,15 +10,23 @@ import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import kr.hyosang.common.HttpUtil;
 
 /**
  * Created by Hyosang on 2015-12-18.
@@ -29,9 +37,13 @@ public class DownloadActivity extends Activity {
     private static int MSG_APPEND_TEXT = 0x01;
     private static int MSG_SHOW_IMAGE = 0x02;
 
+    private static final String SAVE_ROOT = Environment.getExternalStorageDirectory().getAbsolutePath() + "/CyBackup";
+
     private TextView mInfoText1;
     private TextView mInfoText2;
     private ImageView mPreview;
+    private CheckBox mChkNomedia;
+    private CheckBox mChkMakezip;
 
     private List<FolderVO> mFolderList = new ArrayList<FolderVO>();
     private int mFolderIdx = 0;
@@ -47,11 +59,15 @@ public class DownloadActivity extends Activity {
         mInfoText1 = (TextView) findViewById(R.id.txt_info_1);
         mInfoText2 = (TextView) findViewById(R.id.txt_info_2);
         mPreview = (ImageView) findViewById(R.id.preview);
+        mChkNomedia = (CheckBox) findViewById(R.id.chk_nomedia);
+        mChkMakezip = (CheckBox) findViewById(R.id.chk_makezip);
 
         findViewById(R.id.btn_start).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 view.setEnabled(false);
+                mChkNomedia.setEnabled(false);
+                mChkMakezip.setEnabled(false);
 
                 mFolderIdx = 0;
                 startFolder();
@@ -66,9 +82,8 @@ public class DownloadActivity extends Activity {
     }
 
     private void requestFolders() {
-        HttpUtil.HttpData folderList = new HttpUtil.HttpData();
-        folderList.url = "http://cy.cyworld.com/home/" + CyData.getInstance().mTid + "/menu?type=folder&_=" + System.currentTimeMillis();
-        folderList.method = "GET";
+        String url = "http://cy.cyworld.com/home/" + CyData.getInstance().mTid + "/menu?type=folder&_=" + System.currentTimeMillis();
+        HttpUtil.HttpData folderList = HttpUtil.HttpData.createGetRequest(url);
         folderList.mListener = new HttpUtil.HttpListener() {
             @Override
             public void onCompleted(HttpUtil.HttpData data) {
@@ -109,9 +124,7 @@ public class DownloadActivity extends Activity {
         updateLog("폴더 진입 : " + folder.name);
 
         String url = "http://cy.cyworld.com/home/" + CyData.getInstance().mTid + "/postlist?startdate=&enddate=&folderid=" + folder.fid + "&tagname=&_=" + System.currentTimeMillis();
-        HttpUtil.HttpData list = new HttpUtil.HttpData();
-        list.url = url;
-        list.method = "GET";
+        HttpUtil.HttpData list = HttpUtil.HttpData.createGetRequest(url);
         list.mListener = new HttpUtil.HttpListener() {
             @Override
             public void onCompleted(HttpUtil.HttpData data) {
@@ -170,9 +183,7 @@ public class DownloadActivity extends Activity {
         yyyymm += (m < 10) ? ("0" + m) : m;
 
         String url = "http://cy.cyworld.com/home/" + CyData.getInstance().mTid + "/postmore?lastid=" + lastid + "&lastdate=" + lastdate + "&startdate=&enddate=&folderid=" + folder.fid + "&tagname=&lastyymm=" + yyyymm + "&listsize=24&_=" + System.currentTimeMillis();
-        HttpUtil.HttpData list = new HttpUtil.HttpData();
-        list.url = url;
-        list.method = "GET";
+        HttpUtil.HttpData list = HttpUtil.HttpData.createGetRequest(url);
         list.mListener = new HttpUtil.HttpListener() {
             @Override
             public void onCompleted(HttpUtil.HttpData data) {
@@ -218,6 +229,17 @@ public class DownloadActivity extends Activity {
     private void startDownload() {
         mFolderIdx = 0;
 
+        if(mChkNomedia.isChecked()) {
+            //nomedia 파일 생성
+            try {
+                File f = new File(SAVE_ROOT + "/.nomedia");
+                f.getParentFile().mkdirs();
+                f.createNewFile();
+            }catch(IOException e) {
+                Log.e("TEST", Log.getStackTraceString(e));
+            }
+        }
+
         startFolderDownload();
     }
 
@@ -229,6 +251,16 @@ public class DownloadActivity extends Activity {
             nextDownload();
         }else {
             updateLog("다운로드 완료");
+
+            if(mChkMakezip.isChecked()) {
+                //압축파일 생성
+                (new Thread() {
+                    @Override
+                    public void run() {
+                        startZip();
+                    }
+                }).start();
+            }
         }
 
     }
@@ -237,9 +269,8 @@ public class DownloadActivity extends Activity {
         if(mArticleIdx >= 0) {
             ArticleVO article = mFolderList.get(mFolderIdx).articles.get(mArticleIdx);
 
-            HttpUtil.HttpData down = new HttpUtil.HttpData();
-            down.url = "http://cy.cyworld.com/home/" + CyData.getInstance().mTid + "/post/" + article.id;
-            down.method = "GET";
+            String url = "http://cy.cyworld.com/home/" + CyData.getInstance().mTid + "/post/" + article.id;
+            HttpUtil.HttpData down = HttpUtil.HttpData.createGetRequest(url);
             down.mListener = new HttpUtil.HttpListener() {
                 @Override
                 public void onCompleted(HttpUtil.HttpData data) {
@@ -291,7 +322,7 @@ public class DownloadActivity extends Activity {
             HttpUtil.getInstance().add(down);
         }else {
             //refresh MediaStore
-            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath()))));
+            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(SAVE_ROOT))));
 
             mFolderIdx++;
             startFolderDownload();
@@ -314,11 +345,9 @@ public class DownloadActivity extends Activity {
         filename = filename.replaceAll("[\\\\\\/:\\*\\?\\\"<>\\|]", "");
 
         //저장할 경로
-        String savepath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/CyBackup/" + folderName + "/" + filename;
+        String savepath = String.format("%s/%s/%s", SAVE_ROOT, folderName, filename);
 
-        HttpUtil.HttpData filedown = new HttpUtil.HttpData();
-        filedown.url = fileurl;
-        filedown.method = "GET";
+        HttpUtil.HttpData filedown = HttpUtil.HttpData.createGetRequest(fileurl);
         filedown.requestHeaders.put("Referer", referer);
         filedown.saveTo = savepath;
         filedown.mListener = new HttpUtil.HttpListener() {
@@ -331,6 +360,60 @@ public class DownloadActivity extends Activity {
 
 
         HttpUtil.getInstance().add(filedown);
+    }
+
+    private void startZip() {
+        ZipOutputStream zos = null;
+
+        try {
+            zos = new ZipOutputStream(new FileOutputStream(SAVE_ROOT + "/CyBackup.zip"));
+            File root = new File(SAVE_ROOT);
+            File[] dirs = root.listFiles();
+
+            for (File f : dirs) {
+                if (f.isDirectory()) {
+                    zipFolder(zos, f);
+                }
+            }
+        }catch(IOException e) {
+            Log.e("TEST", Log.getStackTraceString(e));
+        }finally {
+            if (zos != null) {
+                try { zos.close(); } catch(IOException e) { }
+            }
+        }
+
+        updateLog("압축파일 생성 완료");
+    }
+
+    private void zipFolder(ZipOutputStream zos, File dir) {
+        int cutLen = SAVE_ROOT.length() + 1;
+        File [] files = dir.listFiles();
+        byte [] buf = new byte[50 * 1024];  //50K
+        int nRead;
+
+        for(File f : files) {
+            if(f.isDirectory()) {
+                zipFolder(zos, f);
+            }else {
+                try {
+                    String relPath = f.getAbsolutePath().substring(cutLen);
+                    updateLog("압축중: " + relPath);
+                    Log.d("TEST", "Zip = " + relPath);
+
+                    FileInputStream fis = new FileInputStream(f);
+                    ZipEntry entry = new ZipEntry(relPath);
+                    zos.putNextEntry(entry);
+                    while( (nRead = fis.read(buf)) > 0) {
+                        zos.write(buf, 0, nRead);
+                    }
+                    zos.closeEntry();
+                }catch(IOException e) {
+                    Log.e("TEST", Log.getStackTraceString(e));
+                }
+            }
+        }
+
     }
 
     private void updateLog(String str) {
