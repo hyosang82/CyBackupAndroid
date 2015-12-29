@@ -20,6 +20,7 @@ public class PermissionCheckActivity extends Activity {
     private static int PERMISSION_CHECK_ID = 0x01;
 
     private static String [] CHECK_PERMISSIONS = {
+            Manifest.permission.INTERNET,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
@@ -50,6 +51,8 @@ public class PermissionCheckActivity extends Activity {
         if(needCheck) {
             //request permission
             ActivityCompat.requestPermissions(this, CHECK_PERMISSIONS, PERMISSION_CHECK_ID);
+        }else {
+            startApp();
         }
     }
 
