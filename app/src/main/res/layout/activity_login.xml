@@ -5,7 +5,6 @@
     android:orientation="vertical"
     android:gravity="center|center_vertical"
 >
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -57,6 +56,17 @@
         android:text="LOGIN"
 
     />
+
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Build.20151229"
+        />
+
+
 
 
 
