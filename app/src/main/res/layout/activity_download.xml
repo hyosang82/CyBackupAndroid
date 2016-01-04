@@ -1,49 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
 >
-    <TextView
-        android:id="@+id/txt_info_1"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-    />
+    >
+        <TextView
+            android:id="@+id/txt_info_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+        />
 
-    <CheckBox
-        android:id="@+id/chk_nomedia"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="다운받은 파일을 갤러리 앱에 보이지 않음"
-    />
+        <CheckBox
+            android:id="@+id/chk_nomedia"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="다운받은 파일을 갤러리 앱에 보이지 않음"
+        />
 
-    <CheckBox
-        android:id="@+id/chk_makezip"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="압축파일 생성"
-    />
+        <CheckBox
+            android:id="@+id/chk_makezip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="압축파일 생성"
+        />
 
-    <Button
-        android:id="@+id/btn_start"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="다운로드 시작"
-    />
+        <Button
+            android:id="@+id/btn_start"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="다운로드 시작"
+        />
 
-    <TextView
-        android:id="@+id/txt_info_2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-    />
+        <TextView
+            android:id="@+id/txt_info_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+        />
 
-    <ImageView
-        android:id="@+id/preview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scaleType="fitCenter"
-    />
-
-
-
-</LinearLayout>
+        <ImageView
+            android:id="@+id/preview"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="fitCenter"
+        />
+    </LinearLayout>
+</ScrollView>

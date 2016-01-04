@@ -75,10 +75,6 @@ public class DownloadActivity extends Activity {
         });
 
         requestFolders();
-
-        ViewGroup.LayoutParams lp = mPreview.getLayoutParams();
-        lp.height = lp.width;
-        mPreview.setLayoutParams(lp);
     }
 
     private void requestFolders() {
